@@ -1,8 +1,8 @@
-#include "/home/michele/root/include/TGraph"
-#include "/home/michele/root/include/TCanvas"
-#include "/home/michele/root/include/TF1"
+#include "/home/michele/root/include/TGraphErrors.h"
+#include "/home/michele/root/include/TCanvas.h"
+#include "/home/michele/root/include/TF1.h"
 #include <iostream>
-
+#include <cmath>
 void cal()
 {
 
@@ -11,7 +11,7 @@ void cal()
     Vline->SetParameters(0., 1.);
     Vcal->Fit("Vline");
 
-    Canva *TCanvas = new TCanvas("Canva", "Calibrazione del multimetro", 600, 400);
+    TCanvas *Canva = new TCanvas("Canva", "Calibrazione del multimetro", 600, 400);
     Vcal->SetTitle("Calibrazione degli strumenti");
     Vcal->GetXaxis()->SetTitle("V osc(mV)");
     Vcal->GetYaxis()->SetTitle("V mult(mV)");
@@ -19,41 +19,40 @@ void cal()
     Vline->Draw("SAME");
 
     std::cout << "Parametri di calibrazione: q: " << Vline->GetParameter(0) << " +/- " << Vline->GetParError(0)
-              << " \n m:" << Vline->GetParameter(1) << " +/- " << Vline->GetParError(1);
+              << " "<<std::endl<<" m:" << Vline->GetParameter(1) << " +/- " << Vline->GetParError(1);
 }
 
-void fit()
+void fitSi()
 {
 
     TGraphErrors *IVSi = new TGraphErrors("IVdataSi.txt", "%lg%lg%lg%lg");
-    TGraphErrors *IVGe = new TGraphErrors("IVdataGe.txt", "%lg%lg%lg%lg");
+    
 
-    TF1 *fitSi = new TF1("fitSi", "[0]*(exp(x/[1])-1)", 0., 1.);
-    TF1 *fitGe = new TF1("fitGe", "[0]*(exp(x/[1])-1)", 0., 1.);
+    TF1 *fitSi = new TF1("fitSi", "[0]*(TMath::Exp(x/[1])-1)", 0, 1000);
+    
 
-    fitSi->SetParameters(1E-6, 3.6);
-    fitGe->SetParameters(1E-3, 1.8);
-
-    IVSi->Fit(fitSi);
-    IVSi->SetLineColor(kRed);
-    IVGe->Fit(fitGe); // specificare opzione Range
-    IVGe->SetLineColor(kBlue);
-
-    Canva *TCanvas = new TCanvas("Canva", "Curve caratteristiche IV", 600, 400);
+    fitSi->SetParameters(1E-6, 60);
+    
+    IVSi->Fit(fitSi,"R");
+    fitSi->SetLineColor(kRed);
+    
+    TCanvas *Canva2 = new TCanvas("CanvaSi", "Curve caratteristiche IV Silicio", 600, 400);
     IVSi->GetXaxis()->SetTitle("V(mV)");
-    IVSI->GetYAxis()->SetTitle("I(mA)");
+    IVSi->GetYaxis()->SetTitle("I(mA)");
     IVSi->Draw("APE");
-    IVGe->Draw("SAME");
-    fitSi->Draw("SAME");
+    fitSi->Draw("SAME")
+}
+void fitGe(){
+ TGraphErrors *IVGe = new TGraphErrors("IVdataGe.txt", "%lg%lg%lg%lg");
+ TF1 *fitGe = new TF1("fitGe", "[0]*(TMath::Exp(x/[1])-1)", 0, 1000);
+ fitGe->SetParameters(1E-3, 30);
+
+ IVGe->Fit(fitGe, "R"); // specificare opzione Range
+    fitGe->SetLineColor(kBlue);
+ TCanvas *Canva3 = new TCanvas("CanvaGe", "Curve caratteristiche IV Germanio", 600, 400);
+    IVGe->GetXaxis()->SetTitle("V(mV)");
+    IVGe->GetYaxis()->SetTitle("I(mA)");
+    IVGe->Draw("APE");
     fitGe->Draw("SAME");
 
-    std::cout << "Parametri del fit caratteristica IV: \n 
-    Silicio: \n
-    I0: " << fitSi->GetParameter(0)<< " +/-" << fitSi->GetParError(0)<< "\n
-    EtaVT : " << fitSi->GetParameter(1) << " +/-" << fitSi->GetParError(1)<<
-    "\n Chi quadro: " << fitSi->GetChiSquare()/fitSi->GetNdF() <<"\n
-    Germanio : \n
-    I0 : "<<fitGe->GetParameter(0)<<"+/-"<<fitGe->GetParError(0)<<
-    "\nEtaVT : "<<fitGe->GetParameter(1)<<" +/-"<<fitGe->GetParError(1)<<
-    "\nChi quadro: " << fitGe->GetChiSquare() / fitGe->GetNdF();
 }
