@@ -50,7 +50,7 @@ void fitGe(TFile* f){
 
      f->cd();
  TGraphErrors *IVGe = new TGraphErrors("IVdataGe.txt", "%lg%lg%lg%lg");
- TF1 *fitGe = new TF1("fitGe", "[0]*(TMath::Exp(x/[1])-1)", 150, 200);
+ TF1 *fitGe = new TF1("fitGe", "[0]*(TMath::Exp(x/[1])-1)", 150, 240);
  fitGe->SetParameters(1E-3, 30);
 
  IVGe->Fit(fitGe, "R"); // specificare opzione Range
