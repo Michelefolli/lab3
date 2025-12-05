@@ -33,31 +33,32 @@ void analyze()
     
     //DISEGNO
     TCanvas * IVchar = new TCanvas("Char","Curve di Caratteristica");
-    IV1->GetXaxis()->SetTitle("-V(V)");
-    IV1->GetYaxis()->SetTitle("-I(mA)");
+    IV1->GetXaxis()->SetTitle("-V_{CE}(V)");
+    IV1->GetYaxis()->SetTitle("-I_{C}(mA)");
+    IV1->GetYaxis()->SetLimits(0.,25.);
+    IV1->SetLineColor(kRed);
+    IV2->SetLineColor(kBlue);
     IV1->Draw("APE");
     IV2->Draw("SAME");
     IVchar->Write();
-  
     
-    for(int i=0; i<29;++i){
-        double x1,y1,x2,y2;
-       IV1->GetPoint(i,x1,y1);
-       IV1->SetPoint(i,y1,x1);
-       IV2->GetPoint(i,x2,y2);
-       IV2->SetPoint(i,y2,x2);
-    }
-    TF1 *fit1 = new TF1("fit1", "[0]+[1]*x",18.7,22.); // specificare range
-    //fit1->SetParameters();                     // parametri aspettati (il primo è tensione di early,
+    TGraphErrors *VI1 = new TGraphErrors("VI1data.txt", "%lg %lg %lg %lg");
+    TGraphErrors *VI2 = new TGraphErrors("VI2data.txt", "%lg %lg %lg %lg");
+    
+    TF1 *fit1 = new TF1("fit1", "[0]+[1]*x",18.65,22); // specificare range
+    fit1->SetParameters(30,1);                     // parametri aspettati (il primo è tensione di early,
                                                 // il secondo la resistività)
-    IV1->Fit(fit1,"R");
+    VI1->Fit(fit1,"R");
     fit1->SetLineColor(kRed);
-    TF1 *fit2 = new TF1("fit2", "[0]+[1]*x",9.63,11.); // specificare range
-    //fit2->SetParameters();                     // parametri aspettati (il primo è tensione di early,
+    TF1 *fit2 = new TF1("fit2", "[0]+[1]*x",9.62,11.); // specificare range
+    fit2->SetParameters(30,0.5);                     // parametri aspettati (il primo è tensione di early,
                                                 // il secondo la resistività)
-    IV2->Fit(fit2,"R");
+    VI2->Fit(fit2,"R");
     fit2->SetLineColor(kGreen);
+    std::cout << "Fit 1 (50uA): \n Early tension(V): " << -fit1->GetParameter(0)<< 
+    "\n Conductivity (mA/V): " << 1/fit1->GetParameter(1)<< std::endl;
+     std::cout << "Fit 2 (100uA): \n Early tension(V): " << -fit2->GetParameter(0)<< 
+    "\n Conductivity (mA/V): " << 1/fit2->GetParameter(1)<< std::endl;
 
-    //BETA, solo parametro
-    
+    output->Close();
     }
